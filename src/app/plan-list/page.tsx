@@ -65,8 +65,6 @@ export default function PlanListPage() {
     })();
   }, [user, router]);
 
-  if (!user) return null;
-
   const filtered = useMemo(() => {
     if (!q.trim()) return items;
     const k = q.toLowerCase();
@@ -77,6 +75,8 @@ export default function PlanListPage() {
     );
   }, [items, q]);
 
+  if (!user) return null;
+  
   return (
     <div className="min-h-screen bg-[radial-gradient(80%_60%_at_20%_10%,#c4b5fd_0%,transparent_60%),radial-gradient(60%_50%_at_90%_10%,#93c5fd_0%,transparent_60%),linear-gradient(180deg,#0b1220_0%,#0b1220_40%,#0e1726_100%)] text-white">
       {/* Top bar */}

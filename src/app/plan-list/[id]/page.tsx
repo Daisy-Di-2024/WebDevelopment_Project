@@ -98,8 +98,9 @@ export default function PlanDetailPage() {
             setErr("This plan does not exist or was removed.");
           }
         }
-      } catch (e: any) {
-        setErr(e?.message || "Failed to load plan.");
+      } catch (e: unknown) {
+        const msg = e instanceof Error ? e.message : "Failed to load plan.";
+        setErr(msg);
       } finally {
         setLoading(false);
       }
@@ -110,8 +111,8 @@ export default function PlanDetailPage() {
 
   const onChange =
     (k: keyof FormState) =>
-    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
-      setForm((s) => ({ ...s, [k]: e.target.value }));
+      (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+        setForm((s) => ({ ...s, [k]: e.target.value }));
 
   const handleSave = async () => {
     setSaving(true);
@@ -124,8 +125,9 @@ export default function PlanDetailPage() {
         await updateItem(user.uid, id as string, form);
         router.replace("/plan-list");
       }
-    } catch (e: any) {
-      setErr(e?.message || "Failed to save.");
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Failed to load plan.";
+      setErr(msg);
     } finally {
       setSaving(false);
     }
@@ -143,8 +145,9 @@ export default function PlanDetailPage() {
     try {
       await deleteItem(user.uid, id as string);
       router.replace("/plan-list");
-    } catch (e: any) {
-      setErr(e?.message || "Failed to delete.");
+    } catch (e: unknown) {
+      const msg = e instanceof Error ? e.message : "Failed to load plan.";
+      setErr(msg);
     } finally {
       setSaving(false);
     }

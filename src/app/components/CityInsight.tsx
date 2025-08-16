@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import Image from "next/image";
 
 type WikiSummary = {
   title?: string;
@@ -52,12 +53,17 @@ export default function CityInsight({ city }: { city: string }) {
 
     setLoading(true);
     setError(null);
+
     const t = setTimeout(async () => {
       try {
         const summary = await fetchWikiSummary(normalized);
         if (!cancelled) setData(summary);
-      } catch (e: any) {
-        if (!cancelled) setError(e?.message || "Failed to load city info.");
+      } catch (e: unknown) {
+        if (!cancelled) {
+          const msg =
+            e instanceof Error ? e.message : "Failed to load city info.";
+          setError(msg);
+        }
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -70,6 +76,7 @@ export default function CityInsight({ city }: { city: string }) {
   }, [normalized, looksLikeCity]);
 
   if (!looksLikeCity) return null;
+
   if (loading) {
     return (
       <div className="mt-4 rounded border p-3 text-sm text-gray-600">
@@ -77,6 +84,7 @@ export default function CityInsight({ city }: { city: string }) {
       </div>
     );
   }
+
   if (error) {
     return (
       <div className="mt-4 rounded border border-red-200 bg-red-50 p-3 text-sm text-red-700">
@@ -84,6 +92,7 @@ export default function CityInsight({ city }: { city: string }) {
       </div>
     );
   }
+
   if (!data) return null;
 
   const img =
@@ -97,11 +106,15 @@ export default function CityInsight({ city }: { city: string }) {
     <div className="mt-4 rounded border p-4 bg-white">
       <div className="flex items-start gap-4">
         {img && (
-          <img
-            src={img}
-            alt={data.title || normalized}
-            className="w-32 h-32 object-cover rounded"
-          />
+          <div className="relative h-32 w-32 shrink-0">
+            <Image
+              src={img}
+              alt={data.title || normalized}
+              fill
+              sizes="128px"
+              className="object-cover rounded"
+            />
+          </div>
         )}
         <div className="min-w-0">
           <div className="text-lg font-semibold">
