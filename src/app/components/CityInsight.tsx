@@ -15,7 +15,6 @@ type WikiSummary = {
 function normalizeCity(input: string) {
   const s = (input || "").trim();
   if (!s) return "";
-  // 简单规范化：每个词首字母大写（兼容多词城市，如 New York）
   return s
     .split(/\s+/)
     .map((w) => w.charAt(0).toUpperCase() + w.slice(1))
@@ -28,7 +27,6 @@ async function fetchWikiSummary(city: string): Promise<WikiSummary | null> {
   const res = await fetch(url, { cache: "no-store" });
   if (!res.ok) return null;
   const data = (await res.json()) as WikiSummary;
-  // 过滤掉消歧义页或非标准页面
   if (!data || (data.type && data.type !== "standard")) return null;
   return data;
 }
@@ -39,7 +37,6 @@ export default function CityInsight({ city }: { city: string }) {
   const [data, setData] = useState<WikiSummary | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  // 简单“像城市名”的判定：长度>=2 且不包含数字（可按需加强）
   const looksLikeCity = useMemo(
     () => !!normalized && normalized.length >= 2 && !/\d/.test(normalized),
     [normalized]
@@ -55,7 +52,6 @@ export default function CityInsight({ city }: { city: string }) {
 
     setLoading(true);
     setError(null);
-    // 轻量防抖：输入停止 400ms 再查
     const t = setTimeout(async () => {
       try {
         const summary = await fetchWikiSummary(normalized);

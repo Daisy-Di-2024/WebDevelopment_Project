@@ -4,20 +4,16 @@ import { useEffect, useMemo, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useUserAuth } from "../../_utils/auth-context";
 import CityInsight from "@/app/components/CityInsight";
-import {
-  getItem,
-  addItem,
-  updateItem,
-  deleteItem,
-} from "../../_services/travel-plan-service";
+import { getItem, addItem, updateItem, deleteItem } from "../../_services/travel-plan-service";
 
+// ------------ Types & initial state ------------
 type FormState = {
   title: string;
   departure: string;
   destination: string;
   startDate: string;
   endDate: string;
-  description: string; // <-- 新增
+  description: string;
 };
 
 const emptyForm: FormState = {
@@ -26,8 +22,44 @@ const emptyForm: FormState = {
   destination: "",
   startDate: "",
   endDate: "",
-  description: "", // <-- 新增
+  description: "",
 };
+
+function FieldLabel({ children }: { children: React.ReactNode }) {
+  return <span className="text-sm text-white/70">{children}</span>;
+}
+
+function InputBase(props: React.InputHTMLAttributes<HTMLInputElement>) {
+  return (
+    <input
+      {...props}
+      className={cn(
+        "w-full rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-sm text-white placeholder:text-white/60 outline-none",
+        "focus:border-white/20 focus:bg-white/15",
+        props.className
+      )}
+    />
+  );
+}
+
+function TextareaBase(
+  props: React.TextareaHTMLAttributes<HTMLTextAreaElement>
+) {
+  return (
+    <textarea
+      {...props}
+      className={cn(
+        "w-full min-h-[120px] rounded-xl border border-white/10 bg-white/10 px-3 py-2 text-sm text-white placeholder:text-white/60 outline-none",
+        "focus:border-white/20 focus:bg-white/15",
+        props.className
+      )}
+    />
+  );
+}
+
+function cn(...cls: (string | false | null | undefined)[]) {
+  return cls.filter(Boolean).join(" ");
+}
 
 export default function PlanDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -60,7 +92,7 @@ export default function PlanDetailPage() {
               destination: data.destination ?? "",
               startDate: data.startDate ?? "",
               endDate: data.endDate ?? "",
-              description: data.description ?? "", // <-- 新增
+              description: data.description ?? "",
             });
           } else {
             setErr("This plan does not exist or was removed.");
@@ -78,8 +110,8 @@ export default function PlanDetailPage() {
 
   const onChange =
     (k: keyof FormState) =>
-      (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
-        setForm((s) => ({ ...s, [k]: e.target.value }));
+    (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+      setForm((s) => ({ ...s, [k]: e.target.value }));
 
   const handleSave = async () => {
     setSaving(true);
@@ -123,146 +155,168 @@ export default function PlanDetailPage() {
   };
 
   return (
-    <div className="max-w-3xl mx-auto p-6">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold">
-          {isNew ? "New Travel Plan" : "Edit Travel Plan"}
-        </h1>
-        <button
-          onClick={() => router.replace("/plan-list")}
-          className="px-3 py-2 border rounded hover:bg-gray-50"
-        >
-          Back to List
-        </button>
+    <div className="min-h-screen bg-[radial-gradient(80%_60%_at_10%_0%,#f0abfc_0%,transparent_60%),radial-gradient(60%_50%_at_100%_10%,#7dd3fc_0%,transparent_60%),linear-gradient(180deg,#0b1220_0%,#0b1220_40%,#0e1726_100%)] text-white">
+      {/* Header */}
+      <div className="sticky top-0 z-20 backdrop-blur supports-[backdrop-filter]:bg-black/30 bg-black/50 border-b border-white/10">
+        <div className="mx-auto flex max-w-3xl items-center justify-between px-6 py-4">
+          <h1 className="text-xl sm:text-2xl font-bold tracking-tight">
+            {isNew ? "New Travel Plan" : "Edit Travel Plan"}
+          </h1>
+          <button
+            onClick={() => router.replace("/plan-list")}
+            className="rounded-full border border-white/15 px-4 py-2 text-sm transition hover:bg-white/10"
+          >
+            Back to List
+          </button>
+        </div>
       </div>
 
-      {loading ? (
-        <p>Loading...</p>
-      ) : (
-        <>
-          {err && (
-            <div className="mb-4 rounded border border-red-200 bg-red-50 p-3 text-red-700">
-              {err}
+      {/* Body */}
+      <div className="mx-auto max-w-3xl px-6 py-8">
+        {loading ? (
+          <div className="animate-pulse space-y-4">
+            <div className="h-9 w-64 rounded-xl bg-white/10" />
+            <div className="h-28 rounded-2xl bg-white/10" />
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+              <div className="h-24 rounded-2xl bg-white/10" />
+              <div className="h-24 rounded-2xl bg-white/10" />
             </div>
-          )}
-
-          {/* 表单区域 */}
-          <div className="grid grid-cols-1 gap-4">
-            <label className="flex flex-col gap-1">
-              <span className="text-sm text-gray-600">Title</span>
-              <input
-                value={form.title}
-                onChange={onChange("title")}
-                className="border rounded px-3 py-2"
-                placeholder="Trip title"
-              />
-            </label>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <label className="flex flex-col gap-1">
-                <span className="text-sm text-gray-600">Departure</span>
-                <input
-                  value={form.departure}
-                  onChange={onChange("departure")}
-                  className="border rounded px-3 py-2"
-                  placeholder="e.g. Calgary"
-                />
-              </label>
-              <label className="flex flex-col gap-1">
-                <span className="text-sm text-gray-600">Destination</span>
-                <input
-                  value={form.destination}
-                  onChange={onChange("destination")}
-                  className="border rounded px-3 py-2"
-                  placeholder="e.g. Vancouver"
-                />
-              </label>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <label className="flex flex-col gap-1">
-                <span className="text-sm text-gray-600">Start Date</span>
-                <input
-                  type="date"
-                  value={form.startDate}
-                  onChange={onChange("startDate")}
-                  className="border rounded px-3 py-2"
-                />
-              </label>
-              <label className="flex flex-col gap-1">
-                <span className="text-sm text-gray-600">End Date</span>
-                <input
-                  type="date"
-                  value={form.endDate}
-                  onChange={onChange("endDate")}
-                  className="border rounded px-3 py-2"
-                />
-              </label>
-            </div>
-
-            {/* 描述 */}
-            <label className="flex flex-col gap-1">
-              <span className="text-sm text-gray-600">Description</span>
-              <textarea
-                value={form.description}
-                onChange={onChange("description")}
-                className="border rounded px-3 py-2 min-h-[120px]"
-                placeholder="Overview of this trip, key activities, notes..."
-              />
-            </label>
+            <div className="h-40 rounded-2xl bg-white/10" />
           </div>
-
-          {/* 城市洞察：放在表单下面、按钮上面 */}
-          <div className="mt-8 space-y-6">
-            {form.departure?.trim() ? (
-              <div>
-                <div className="text-sm font-medium text-gray-600 mb-1">
-                  About “{form.departure.trim()}”
-                </div>
-                <CityInsight city={form.departure} />
+        ) : (
+          <>
+            {err && (
+              <div className="mb-4 rounded-2xl border border-red-300/30 bg-red-500/10 p-3 text-red-200">
+                {err}
               </div>
-            ) : null}
-
-            {form.destination?.trim() ? (
-              <div>
-                <div className="text-sm font-medium text-gray-600 mb-1">
-                  About “{form.destination.trim()}”
-                </div>
-                <CityInsight city={form.destination} />
-              </div>
-            ) : null}
-          </div>
-
-          {/* 按钮区域 */}
-          <div className="mt-6 flex gap-3">
-            <button
-              onClick={handleSave}
-              disabled={saving}
-              className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 disabled:opacity-50"
-            >
-              {saving ? "Saving..." : "Save"}
-            </button>
-
-            <button
-              onClick={handleCancel}
-              disabled={saving}
-              className="px-4 py-2 border rounded hover:bg-gray-50 disabled:opacity-50"
-            >
-              Cancel
-            </button>
-
-            {!isNew && (
-              <button
-                onClick={handleDelete}
-                disabled={saving}
-                className="ml-auto px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 disabled:opacity-50"
-              >
-                Delete
-              </button>
             )}
-          </div>
-        </>
-      )}
+
+            <div className="rounded-3xl border border-white/10 bg-white/5 p-6 shadow-2xl shadow-blue-600/10">
+              <div className="grid grid-cols-1 gap-4">
+                <label className="flex flex-col gap-1">
+                  <FieldLabel>Title</FieldLabel>
+                  <InputBase
+                    value={form.title}
+                    onChange={onChange("title")}
+                    placeholder="Trip title"
+                  />
+                </label>
+
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <label className="flex flex-col gap-1">
+                    <FieldLabel>Departure</FieldLabel>
+                    <InputBase
+                      value={form.departure}
+                      onChange={onChange("departure")}
+                      placeholder="e.g. Calgary"
+                    />
+                  </label>
+                  <label className="flex flex-col gap-1">
+                    <FieldLabel>Destination</FieldLabel>
+                    <InputBase
+                      value={form.destination}
+                      onChange={onChange("destination")}
+                      placeholder="e.g. Vancouver"
+                    />
+                  </label>
+                </div>
+
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <label className="flex flex-col gap-1">
+                    <FieldLabel>Start Date</FieldLabel>
+                    <InputBase
+                      type="date"
+                      value={form.startDate}
+                      onChange={onChange("startDate")}
+                    />
+                  </label>
+                  <label className="flex flex-col gap-1">
+                    <FieldLabel>End Date</FieldLabel>
+                    <InputBase
+                      type="date"
+                      value={form.endDate}
+                      onChange={onChange("endDate")}
+                    />
+                  </label>
+                </div>
+
+                <label className="flex flex-col gap-1">
+                  <FieldLabel>Description</FieldLabel>
+                  <TextareaBase
+                    value={form.description}
+                    onChange={onChange("description")}
+                    placeholder="Overview of this trip, key activities, notes..."
+                  />
+                </label>
+              </div>
+
+              {/* City insights */}
+              <div className="mt-8 space-y-6">
+                {form.departure?.trim() ? (
+                  <div>
+                    <div className="mb-1 text-sm font-medium text-white/80">
+                      About “{form.departure.trim()}”
+                    </div>
+                    <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/5">
+                      <CityInsight city={form.departure} />
+                    </div>
+                  </div>
+                ) : null}
+
+                {form.destination?.trim() ? (
+                  <div>
+                    <div className="mb-1 text-sm font-medium text-white/80">
+                      About “{form.destination.trim()}”
+                    </div>
+                    <div className="overflow-hidden rounded-2xl border border-white/10 bg-white/5">
+                      <CityInsight city={form.destination} />
+                    </div>
+                  </div>
+                ) : null}
+              </div>
+
+              {/* Actions */}
+              <div className="sticky bottom-6 mt-8 flex flex-wrap items-center gap-3 rounded-2xl border border-white/10 bg-black/40 p-3 backdrop-blur">
+                <button
+                  onClick={handleSave}
+                  disabled={saving}
+                  className={cn(
+                    "rounded-full px-5 py-2 text-sm font-semibold shadow-lg transition",
+                    "bg-gradient-to-r from-indigo-500 to-blue-500 shadow-indigo-500/30 hover:from-indigo-400 hover:to-blue-400",
+                    saving && "opacity-60"
+                  )}
+                >
+                  {saving ? "Saving..." : "Save"}
+                </button>
+
+                <button
+                  onClick={handleCancel}
+                  disabled={saving}
+                  className={cn(
+                    "rounded-full border border-white/15 px-5 py-2 text-sm transition hover:bg-white/10",
+                    saving && "opacity-60"
+                  )}
+                >
+                  Cancel
+                </button>
+
+                {!isNew && (
+                  <button
+                    onClick={handleDelete}
+                    disabled={saving}
+                    className={cn(
+                      "ml-auto rounded-full bg-red-600/90 px-5 py-2 text-sm font-semibold text-white shadow-lg shadow-red-600/30 transition hover:bg-red-600",
+                      saving && "opacity-60"
+                    )}
+                  >
+                    Delete
+                  </button>
+                )}
+              </div>
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 }
